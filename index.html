@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Такси Нукус — Шымбай</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --yellow:#FFC400;
+    --yellow-deep:#FFB300;
+    --dark:#15161A;
+    --dark-2:#1F2026;
+    --bg:#0F0F12;
+    --card:#ffffff;
+    --muted:#8A8B93;
+    --line:#ECECEF;
+    --green:#1FAE5C;
+    --radius:20px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Manrope',sans-serif;
+    background:
+      radial-gradient(1200px 600px at 50% -10%, rgba(255,196,0,.18), transparent 60%),
+      var(--bg);
+    color:#fff;
+    min-height:100vh;
+    -webkit-tap-highlight-color: transparent;
+    user-select:none;
+    padding:14px 14px 28px;
+  }
+
+  /* ---------- TOP BAR ---------- */
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;gap:10px;}
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand-icon{
+    width:46px;height:46px;border-radius:14px;
+    background:linear-gradient(145deg, var(--yellow), var(--yellow-deep));
+    display:flex;align-items:center;justify-content:center;
+    font-size:24px;
+    box-shadow:0 6px 16px rgba(255,196,0,.35);
+  }
+  .brand-text h1{font-size:17px;margin:0;font-weight:800;letter-spacing:.2px;}
+  .brand-text p{font-size:11.5px;margin:2px 0 0;color:#A7A8B3;font-weight:500;}
+
+  .lang-wrap{position:relative;}
+  .lang-btn{
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.12);
+    color:#fff;padding:9px 12px;border-radius:14px;
+    font-size:12.5px;font-weight:700;cursor:pointer;
+    display:flex;align-items:center;gap:6px;
+    backdrop-filter:blur(6px);
+    transition:.15s;
+  }
+  .lang-btn:active{transform:scale(.96);}
+  .lang-btn .chev{font-size:9px;opacity:.7;transition:transform .2s;}
+  .lang-btn.open .chev{transform:rotate(180deg);}
+  .lang-menu{
+    position:absolute;right:0;top:46px;z-index:50;
+    background:var(--dark-2);
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:16px;min-width:178px;
+    overflow:hidden;
+    box-shadow:0 14px 34px rgba(0,0,0,.45);
+    opacity:0;transform:translateY(-6px) scale(.97);
+    pointer-events:none;
+    transition:.18s ease;
+  }
+  .lang-menu.show{opacity:1;transform:translateY(0) scale(1);pointer-events:auto;}
+  .lang-item{
+    display:flex;align-items:center;gap:10px;
+    padding:11px 14px;font-size:13.5px;font-weight:600;color:#EDEDED;
+    cursor:pointer;transition:background .15s;
+  }
+  .lang-item:active{background:rgba(255,196,0,.18);}
+  .lang-item.active{color:var(--yellow);}
+  .lang-item .flag{font-size:17px;}
+
+  /* ---------- CARD ---------- */
+  .card{
+    background:var(--card);
+    color:var(--dark);
+    border-radius:var(--radius);
+    padding:18px;
+    margin-bottom:14px;
+    box-shadow:0 16px 40px rgba(0,0,0,.35);
+  }
+  .section-label{
+    font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;
+    color:#A2A3AC;margin:0 0 10px 2px;
+  }
+
+  /* route selector */
+  .route-box{
+    display:flex;align-items:center;gap:10px;
+    background:#F6F6F8;border-radius:16px;padding:6px;
+    margin-bottom:18px;
+    border:1.5px solid var(--line);
+  }
+  .route-pill{
+    flex:1;text-align:center;padding:13px 6px;border-radius:12px;
+    font-weight:700;font-size:13.5px;color:#75767E;cursor:pointer;
+    transition:.18s;
+  }
+  .route-pill.active{
+    background:var(--dark);color:#fff;
+    box-shadow:0 6px 14px rgba(0,0,0,.18);
+  }
+  .route-swap{font-size:15px;color:#C7C8CF;}
+
+  .field{margin-bottom:18px;}
+  .field label{
+    display:block;font-size:11.5px;font-weight:800;margin-bottom:9px;
+    color:var(--dark);text-transform:uppercase;letter-spacing:.4px;
+  }
+  input[type=tel], textarea{
+    width:100%;padding:14px 15px;font-size:15px;font-family:inherit;font-weight:600;
+    border:1.6px solid var(--line);border-radius:14px;background:#FAFAFB;color:var(--dark);
+    outline:none;transition:.15s;
+  }
+  textarea{resize:none;font-weight:500;}
+  input[type=tel]:focus, textarea:focus{
+    border-color:var(--yellow);background:#fff;
+    box-shadow:0 0 0 4px rgba(255,196,0,.18);
+  }
+
+  .seats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  .seat{
+    border:1.6px solid var(--line);border-radius:14px;padding:14px 0;
+    text-align:center;font-weight:800;font-size:17px;color:#A2A3AC;
+    cursor:pointer;transition:.15s;background:#FAFAFB;position:relative;
+  }
+  .seat svg{display:block;margin:0 auto 4px;width:18px;height:18px;}
+  .seat.active{
+    background:linear-gradient(145deg, var(--yellow), var(--yellow-deep));
+    border-color:var(--yellow-deep);color:var(--dark);
+    transform:translateY(-2px);
+    box-shadow:0 8px 18px rgba(255,196,0,.4);
+  }
+  .seat-hint{font-size:11.5px;color:#A2A3AC;margin-top:9px;font-weight:600;text-align:center;}
+
+  /* GPS */
+  .gps-box{
+    display:flex;align-items:center;gap:12px;
+    background:#FAFAFB;border:1.6px dashed #E4C200;
+    border-radius:16px;padding:13px 14px;margin-top:4px;
+  }
+  .gps-box.done{border-style:solid;border-color:var(--green);background:rgba(31,174,92,.07);}
+  .gps-icon{
+    width:38px;height:38px;border-radius:11px;flex-shrink:0;
+    background:rgba(255,196,0,.16);
+    display:flex;align-items:center;justify-content:center;font-size:18px;
+  }
+  .gps-box.done .gps-icon{background:rgba(31,174,92,.16);}
+  .gps-text{flex:1;font-size:12.5px;font-weight:700;color:#5B5C66;line-height:1.3;}
+  .gps-box.done .gps-text{color:var(--green);}
+  .gps-btn{
+    background:var(--dark);color:#fff;border:none;padding:9px 14px;
+    border-radius:11px;font-size:12px;font-weight:800;cursor:pointer;flex-shrink:0;
+  }
+  .gps-btn.success{background:var(--green);}
+
+  /* main button */
+  .submit-btn{
+    width:100%;padding:17px;font-size:16px;font-weight:800;border:none;
+    border-radius:18px;
+    background:linear-gradient(145deg, var(--yellow), var(--yellow-deep));
+    color:var(--dark);cursor:pointer;
+    box-shadow:0 12px 28px rgba(255,196,0,.35);
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    transition:.12s;
+  }
+  .submit-btn:active{transform:scale(.97);}
+  .submit-btn svg{width:19px;height:19px;}
+
+  /* footer */
+  .footer{
+    margin-top:22px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;
+  }
+  .footer a{
+    text-decoration:none;display:flex;align-items:center;gap:6px;
+    background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);
+    color:#D8D9E0;font-size:11.5px;font-weight:700;padding:9px 13px;
+    border-radius:30px;backdrop-filter:blur(6px);
+  }
+  .footer a:active{transform:scale(.96);}
+  .footer .ico{font-size:13px;}
+
+  .powered{text-align:center;color:#55565F;font-size:10.5px;margin-top:14px;font-weight:600;}
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-icon">🚕</div>
+      <div class="brand-text">
+        <h1 id="t_title">Такси Нукус — Шымбай</h1>
+        <p id="t_subtitle">Быстро, удобно, надёжно</p>
+      </div>
+    </div>
+    <div class="lang-wrap">
+      <button class="lang-btn" id="langBtn" onclick="toggleLangMenu()">
+        <span id="langFlag">🇷🇺</span><span id="langName">RU</span><span class="chev">▼</span>
+      </button>
+      <div class="lang-menu" id="langMenu">
+        <div class="lang-item active" data-lang="ru" onclick="selectLanguage('ru')"><span class="flag">🇷🇺</span> Русский</div>
+        <div class="lang-item" data-lang="en" onclick="selectLanguage('en')"><span class="flag">🇬🇧</span> English</div>
+        <div class="lang-item" data-lang="uz" onclick="selectLanguage('uz')"><span class="flag">🇺🇿</span> O'zbekcha</div>
+        <div class="lang-item" data-lang="kaa" onclick="selectLanguage('kaa')"><span class="flag">🏳️</span> Qaraqalpaqsha</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-label" id="t_route_label">Маршрут поездки</div>
+    <div class="route-box">
+      <div class="route-pill active" data-dir="0" id="dir0">Нукус → Шымбай</div>
+      <div class="route-swap">⇄</div>
+      <div class="route-pill" data-dir="1" id="dir1">Шымбай → Нукус</div>
+    </div>
+
+    <div class="field">
+      <label id="t_phone_label">Номер телефона</label>
+      <input type="tel" id="phone" value="+998" inputmode="tel">
+    </div>
+
+    <div class="field">
+      <label id="t_seats_label">Количество мест (макс. 4)</label>
+      <div class="seats-row">
+        <div class="seat active" data-seats="1">1</div>
+        <div class="seat" data-seats="2">2</div>
+        <div class="seat" data-seats="3">3</div>
+        <div class="seat" data-seats="4">4</div>
+      </div>
+      <div class="seat-hint" id="t_seats_hint">В машине только 4 свободных места</div>
+    </div>
+
+    <div class="field" style="margin-bottom:14px;">
+      <label id="t_comment_label">Комментарий (необязательно)</label>
+      <textarea id="comment" rows="2" placeholder="У меня багаж..."></textarea>
+    </div>
+
+    <div class="gps-box" id="gpsBox">
+      <div class="gps-icon">📍</div>
+      <div class="gps-text" id="gps_status">GPS-местоположение не добавлено</div>
+      <button class="gps-btn" id="gpsBtn" onclick="getGPSLocation()">Отправить</button>
+    </div>
+  </div>
+
+  <button class="submit-btn" id="submitBtn" onclick="submitOrder()">
+    <span>🚕</span><span id="t_submit">Заказать такси</span>
+  </button>
+
+  <div class="footer">
+    <a href="https://t.me/Nukus_Shimbay_24_taksi" target="_blank"><span class="ico">💬</span><span id="t_group">Такси Группа</span></a>
+    <a href="https://t.me/Polat190277" target="_blank"><span class="ico">👤</span><span id="t_driver">Таксист Полат</span></a>
+  </div>
+
+  <div class="powered">Нукус ⇄ Шымбай · межгород</div>
+
+<script>
+const tg = window.Telegram.WebApp;
+tg.expand();
+try{ tg.setHeaderColor('#0F0F12'); tg.setBackgroundColor('#0F0F12'); }catch(e){}
+
+let userLat = "", userLon = "";
+let currentLang = "ru";
+let selectedDir = 0;
+let selectedSeats = 1;
+
+const I18N = {
+  ru:{
+    title:"Такси Нукус — Шымбай", subtitle:"Быстро, удобно, надёжно",
+    route_label:"Маршрут поездки", dir0:"Нукус → Шымбай", dir1:"Шымбай → Нукус",
+    phone_label:"Номер телефона",
+    seats_label:"Количество мест (макс. 4)", seats_hint:"В машине только 4 свободных места",
+    comment_label:"Комментарий (необязательно)", comment_ph:"У меня багаж...",
+    gps_idle:"GPS-местоположение не добавлено", gps_done:"Геопозиция успешно добавлена",
+    gps_btn:"Отправить", gps_btn_done:"Готово",
+    submit:"Заказать такси",
+    group:"Такси Группа", driver:"Таксист Полат",
+    alert_phone:"Пожалуйста, введите номер телефона!",
+    alert_phone_short:"Введите корректный номер телефона!",
+    gps_denied:"Доступ к GPS заблокирован.\n\nРазрешите доступ в настройках телефона: Настройки → Приложения → Telegram → Разрешения → Местоположение.",
+    gps_off:"Включите геолокацию на устройстве, чтобы отправить координаты.",
+    gps_unsupported:"Устройство не поддерживает геолокацию.",
+    flag:"🇷🇺", code:"RU"
+  },
+  en:{
+    title:"Nukus — Shymbay Taxi", subtitle:"Fast, comfortable, reliable",
+    route_label:"Travel route", dir0:"Nukus → Shymbay", dir1:"Shymbay → Nukus",
+    phone_label:"Phone number",
+    seats_label:"Number of seats (max 4)", seats_hint:"The car only has 4 free seats",
+    comment_label:"Comment (optional)", comment_ph:"I have luggage...",
+    gps_idle:"GPS location not added", gps_done:"Location added successfully",
+    gps_btn:"Share", gps_btn_done:"Done",
+    submit:"Order a taxi",
+    group:"Taxi Group", driver:"Driver Polat",
+    alert_phone:"Please enter your phone number!",
+    alert_phone_short:"Please enter a valid phone number!",
+    gps_denied:"GPS access is blocked.\n\nPlease allow access in phone settings: Settings → Apps → Telegram → Permissions → Location.",
+    gps_off:"Please turn on location services to send your coordinates.",
+    gps_unsupported:"This device does not support geolocation.",
+    flag:"🇬🇧", code:"EN"
+  },
+  uz:{
+    title:"Nukus — Shimbay Taksi", subtitle:"Tez, qulay, ishonchli",
+    route_label:"Sayohat yo'nalishi", dir0:"Nukus → Shimbay", dir1:"Shimbay → Nukus",
+    phone_label:"Telefon raqami",
+    seats_label:"O'rindiqlar soni (maks. 4)", seats_hint:"Mashinada faqat 4 ta bo'sh joy bor",
+    comment_label:"Izoh (ixtiyoriy)", comment_ph:"Yukim bor...",
+    gps_idle:"GPS joylashuv qo'shilmagan", gps_done:"Joylashuv muvaffaqiyatli qo'shildi",
+    gps_btn:"Yuborish", gps_btn_done:"Tayyor",
+    submit:"Taksi chaqirish",
+    group:"Taksi Guruhi", driver:"Haydovchi Polat",
+    alert_phone:"Iltimos telefon raqamingizni kiriting!",
+    alert_phone_short:"To'g'ri telefon raqamini kiriting!",
+    gps_denied:"GPS ruxsati bloklangan.\n\nTelefon sozlamalaridan ruxsat bering: Sozlamalar → Ilovalar → Telegram → Ruxsatlar → Joylashuv.",
+    gps_off:"Koordinatalarni yuborish uchun joylashuv xizmatini yoqing.",
+    gps_unsupported:"Bu qurilma geolokatsiyani qo'llab-quvvatlamaydi.",
+    flag:"🇺🇿", code:"UZ"
+  },
+  kaa:{
+    title:"Nukus — Shimbay Taksisi", subtitle:"Tez, qolaylı, isenimli",
+    route_label:"Sapar baǵdarı", dir0:"Nukus → Shimbay", dir1:"Shimbay → Nukus",
+    phone_label:"Telefon nomeri",
+    seats_label:"Orınlar sanı (maks. 4)", seats_hint:"Mashinada tek 4 bos orın bar",
+    comment_label:"Túsinikleme (májbúriy emes)", comment_ph:"Yúgim bar...",
+    gps_idle:"GPS jaylasıw qosılmaǵan", gps_done:"Jaylasıw tabıslı qosıldı",
+    gps_btn:"Jiberiw", gps_btn_done:"Tayar",
+    submit:"Taksi buyırtpa beriw",
+    group:"Taksi Guruppası", driver:"Haydawshı Polat",
+    alert_phone:"Iltimos telefon nomerińizdi kiritiń!",
+    alert_phone_short:"Durıs telefon nomerin kiritiń!",
+    gps_denied:"GPS ruxsatı blokланган.\n\nTelefon sazlawlarınan ruxsat beriń: Sazlawlar → Qosımshalar → Telegram → Ruxsatlar → Jaylasıw.",
+    gps_off:"Koordinatalardı jiberiw ushın jaylasıw xızmetin qosıń.",
+    gps_unsupported:"Bul qurılma geolokatsiyanı qollap-quwatlamaydı.",
+    flag:"🏳️", code:"QQ"
+  }
+};
+
+function applyLang(lang){
+  const d = I18N[lang];
+  currentLang = lang;
+  document.getElementById('t_title').textContent = d.title;
+  document.getElementById('t_subtitle').textContent = d.subtitle;
+  document.getElementById('t_route_label').textContent = d.route_label;
+  document.getElementById('dir0').textContent = d.dir0;
+  document.getElementById('dir1').textContent = d.dir1;
+  document.getElementById('t_phone_label').textContent = d.phone_label;
+  document.getElementById('t_seats_label').textContent = d.seats_label;
+  document.getElementById('t_seats_hint').textContent = d.seats_hint;
+  document.getElementById('t_comment_label').textContent = d.comment_label;
+  document.getElementById('comment').placeholder = d.comment_ph;
+  document.getElementById('t_submit').textContent = d.submit;
+  document.getElementById('t_group').textContent = d.group;
+  document.getElementById('t_driver').textContent = d.driver;
+  document.getElementById('langFlag').textContent = d.flag;
+  document.getElementById('langName').textContent = d.code;
+
+  const gpsStatus = document.getElementById('gps_status');
+  const gpsBtn = document.getElementById('gpsBtn');
+  if(userLat){
+    gpsStatus.textContent = d.gps_done;
+    gpsBtn.textContent = d.gps_btn_done;
+  } else {
+    gpsStatus.textContent = d.gps_idle;
+    gpsBtn.textContent = d.gps_btn;
+  }
+
+  document.querySelectorAll('.lang-item').forEach(el=>{
+    el.classList.toggle('active', el.dataset.lang === lang);
+  });
+}
+
+function toggleLangMenu(){
+  document.getElementById('langMenu').classList.toggle('show');
+  document.getElementById('langBtn').classList.toggle('open');
+}
+function selectLanguage(lang){
+  applyLang(lang);
+  document.getElementById('langMenu').classList.remove('show');
+  document.getElementById('langBtn').classList.remove('open');
+}
+document.addEventListener('click', function(e){
+  const wrap = document.querySelector('.lang-wrap');
+  if(!wrap.contains(e.target)){
+    document.getElementById('langMenu').classList.remove('show');
+    document.getElementById('langBtn').classList.remove('open');
+  }
+});
+
+// route selector
+document.getElementById('dir0').addEventListener('click', ()=>{
+  selectedDir = 0;
+  document.getElementById('dir0').classList.add('active');
+  document.getElementById('dir1').classList.remove('active');
+});
+document.getElementById('dir1').addEventListener('click', ()=>{
+  selectedDir = 1;
+  document.getElementById('dir1').classList.add('active');
+  document.getElementById('dir0').classList.remove('active');
+});
+
+// seats selector — hard limit 4 enforced by only rendering 4 boxes
+document.querySelectorAll('.seat').forEach(box=>{
+  box.addEventListener('click', ()=>{
+    document.querySelectorAll('.seat').forEach(b=>b.classList.remove('active'));
+    box.classList.add('active');
+    selectedSeats = Math.min(4, parseInt(box.getAttribute('data-seats'), 10));
+  });
+});
+
+function getGPSLocation(){
+  if(tg.LocationManager && typeof tg.LocationManager.init === 'function'){
+    tg.LocationManager.init(function(){
+      tg.LocationManager.getLocation(function(data){
+        if(data && data.latitude && data.longitude){
+          userLat = data.latitude; userLon = data.longitude;
+          showGpsSuccess();
+        } else {
+          runHtml5Geolocation();
+        }
+      });
+    });
+  } else {
+    runHtml5Geolocation();
+  }
+}
+
+function runHtml5Geolocation(){
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(function(pos){
+      userLat = pos.coords.latitude; userLon = pos.coords.longitude;
+      showGpsSuccess();
+    }, function(err){
+      const d = I18N[currentLang];
+      if(err.code === 1){ tg.showAlert(d.gps_denied); }
+      else { tg.showAlert(d.gps_off); }
+    }, { enableHighAccuracy:true, timeout:7000, maximumAge:0 });
+  } else {
+    tg.showAlert(I18N[currentLang].gps_unsupported);
+  }
+}
+
+function showGpsSuccess(){
+  const d = I18N[currentLang];
+  document.getElementById('gps_status').textContent = d.gps_done;
+  document.getElementById('gpsBox').classList.add('done');
+  const btn = document.getElementById('gpsBtn');
+  btn.textContent = d.gps_btn_done;
+  btn.classList.add('success');
+}
+
+function submitOrder(){
+  const d = I18N[currentLang];
+  const direction = selectedDir === 0 ? d.dir0 : d.dir1;
+  const phone = document.getElementById('phone').value.trim();
+  const comment = document.getElementById('comment').value.trim();
+  const seats = Math.min(4, Math.max(1, selectedSeats));
+
+  if(!phone || phone === "+998"){
+    tg.showAlert(d.alert_phone);
+    return;
+  }
+  const digits = phone.replace(/\D/g,'');
+  if(digits.length < 9){
+    tg.showAlert(d.alert_phone_short);
+    return;
+  }
+
+  tg.sendData(JSON.stringify({
+    direction: direction,
+    phone: phone,
+    seats: seats,
+    comment: comment,
+    lat: userLat,
+    lon: userLon,
+    lang: currentLang
+  }));
+  tg.close();
+}
+
+applyLang('ru');
+</script>
+</body>
+</html>
